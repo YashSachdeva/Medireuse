@@ -10,6 +10,7 @@ import Footer from "./components/Footer";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import BrowseMedicine from "./pages/BrowseMedicine";
+import Admin from "./pages/Admin";
 
 function Home() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
   const location = useLocation();
   const isAuthRoute = location.pathname === "/login" || location.pathname === "/signup";
   const isBrowseMedicineRoute = location.pathname === "/buy-medicine";
+  const isAdminRoute = location.pathname === "/admin";
 
   return (
     <>
@@ -36,9 +38,11 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/buy-medicine" element={<BrowseMedicine />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
 
-      {!isAuthRoute && !isBrowseMedicineRoute && <Footer />}
+      {/* hide footer on auth, browse-medicine, and admin pages */}
+      {!isAuthRoute && !isBrowseMedicineRoute && !isAdminRoute && <Footer />}
     </>
   );
 }

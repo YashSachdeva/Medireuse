@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/navbar";
+import { authAPI } from "../services/api";
 
 export default function Auth({ initialMode = "login" }) {
   const navigate = useNavigate();
@@ -13,26 +14,35 @@ export default function Auth({ initialMode = "login" }) {
     setIsSignup(initialMode === "signup");
   }, [initialMode]);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const user = JSON.parse(localStorage.getItem("user"));
-    const redirectTo = location.state?.from || "/";
-
-    if (user && user.email === loginForm.email && user.password === loginForm.password) {
-      localStorage.setItem("isLoggedIn", "true");
+    try {
+      const data = await authAPI.login({
+        email: loginForm.email,
+        password: loginForm.password,
+      });
+      // authAPI.login stores token and user for us
+      const redirectTo = location.state?.from || "/";
       alert("Login Successful!");
       navigate(redirectTo);
-      return;
+    } catch (err) {
+      alert(err.message || "Invalid Credentials");
     }
-
-    alert("Invalid Credentials");
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    localStorage.setItem("user", JSON.stringify(signupForm));
-    alert("Signup Successful! Please login.");
-    setIsSignup(false);
+    try {
+      await authAPI.register({
+        name: signupForm.name,
+        email: signupForm.email,
+        password: signupForm.password,
+      });
+      alert("Signup Successful! Please log in.");
+      setIsSignup(false);
+    } catch (err) {
+      alert(err.message || "Signup failed");
+    }
   };
 
   return (

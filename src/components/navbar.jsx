@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import authAPI from "../services/api";
 
 export default function Navbar({
   showAuthButtons = true,
@@ -8,12 +9,20 @@ export default function Navbar({
 }) {
   const location = useLocation();
 
+  const user = authAPI.getStoredUser();
+  const isAdmin = user?.role === 'admin';
+
   const dashboardLinks = [
     { label: "Dashboard", path: "/" },
     { label: "Buy Medicine", path: "/buy-medicine" },
     { label: "Track & Verify", path: "/track-verify" },
     { label: "My Listings", path: "/my-listings" },
   ];
+
+  if (isAdmin) {
+    // additional link for admins
+    dashboardLinks.push({ label: 'Admin', path: '/admin' });
+  }
 
   return (
     <nav className="sticky top-0 z-50 px-4 md:px-8 pt-4">

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, Package, Search } from "lucide-react";
 import { gsap } from "gsap";
 
@@ -24,14 +24,56 @@ const medicines = [
 export default function BrowseMedicine() {
   const pageRef = useRef(null);
   const headerRef = useRef(null);
-  const sidebarRef = useRef(null);
-  const sidebarItemsRef = useRef([]);
-  const clearFilterRef = useRef(null);
   const cardsRef = useRef([]);
   const paginationRef = useRef(null);
 
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [sortOrder, setSortOrder] = useState(null); // 'asc' or 'desc'
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+
+  const getFilteredMedicines = () => {
+    let filtered = medicines;
+    if (selectedCategory) {
+      const typeMap = {
+        Tablets: 'Tablet',
+        Syrups: 'Syrup',
+        Capsules: 'Capsule',
+        Supplements: 'Verified'
+      };
+      const targetType = typeMap[selectedCategory];
+      filtered = filtered.filter(m => m.type === targetType);
+    }
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    }
+    if (sortOrder) {
+      filtered = [...filtered].sort((a, b) => {
+        const dateA = new Date(a.expiry);
+        const dateB = new Date(b.expiry);
+        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+      });
+    }
+    return filtered;
+  };
+
+  const filteredMedicines = getFilteredMedicines();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.dropdown') && !event.target.closest('.sort-dropdown')) {
+        setIsDropdownOpen(false);
+        setIsSortDropdownOpen(false);
+      }
+    };
+    if (isDropdownOpen || isSortDropdownOpen) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [isDropdownOpen, isSortDropdownOpen]);
+
   useLayoutEffect(() => {
-    sidebarItemsRef.current = sidebarItemsRef.current.filter(Boolean);
     cardsRef.current = cardsRef.current.filter(Boolean);
 
     const ctx = gsap.context(() => {
@@ -45,30 +87,6 @@ export default function BrowseMedicine() {
         { opacity: 0, y: 26 },
         { opacity: 1, y: 0, duration: 0.55, clearProps: "opacity,transform" }
       )
-        .fromTo(
-          sidebarRef.current,
-          { opacity: 0, x: -24 },
-          { opacity: 1, x: 0, duration: 0.5, clearProps: "opacity,transform" },
-          "-=0.2"
-        )
-        .fromTo(
-          sidebarItemsRef.current,
-          { opacity: 0, x: -16 },
-          {
-            opacity: 1,
-            x: 0,
-            duration: 0.32,
-            stagger: 0.08,
-            clearProps: "opacity,transform",
-          },
-          "-=0.15"
-        )
-        .fromTo(
-          clearFilterRef.current,
-          { opacity: 0, y: 8 },
-          { opacity: 1, y: 0, duration: 0.3, clearProps: "opacity,transform" },
-          "-=0.1"
-        )
         .fromTo(
           cardsRef.current,
           { opacity: 0, y: 28 },
@@ -102,30 +120,111 @@ export default function BrowseMedicine() {
               Find and purchase unused medicine safely and affordably.
             </p>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-[1.6fr_1fr_1fr]">
+            <div className="mt-5 grid gap-3 md:grid-cols-[1.6fr_1fr_1fr_auto]">
               <label className="flex items-center gap-3 rounded-xl border border-[#d3e7e0] bg-white px-4 py-3 text-[#5b7570]">
                 <Search size={17} />
                 <input
                   type="text"
                   placeholder="Search medicine by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-transparent text-sm md:text-base outline-none placeholder:text-[#8aa39c]"
                 />
               </label>
 
-              <button
-                type="button"
-                className="flex items-center justify-between rounded-xl border border-[#d3e7e0] bg-white px-4 py-3 text-sm md:text-base text-[#3d5f57]"
-              >
-                All Categories
-                <ChevronDown size={17} />
-              </button>
+              <div className="relative dropdown">
+                <button
+                  type="button"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center justify-between rounded-xl border border-[#d3e7e0] bg-white px-4 py-3 text-sm md:text-base text-[#3d5f57] w-full"
+                >
+                  {selectedCategory || 'All Categories'}
+                  <ChevronDown size={17} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isDropdownOpen && (
+                  <div className="absolute top-full mt-1 w-full rounded-xl border border-[#d3e7e0] bg-white shadow-lg z-10">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory(null);
+                        setIsDropdownOpen(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm md:text-base text-[#3d5f57] hover:bg-[#ecf7f3] first:rounded-t-xl"
+                    >
+                      All Categories
+                    </button>
+                    {categories.map((category) => (
+                      <button
+                        key={category.label}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory(category.label);
+                          setIsDropdownOpen(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm md:text-base text-[#3d5f57] hover:bg-[#ecf7f3] last:rounded-b-xl"
+                      >
+                        {category.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="relative sort-dropdown">
+                <button
+                  type="button"
+                  onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                  className="flex items-center justify-between rounded-xl border border-[#d3e7e0] bg-white px-4 py-3 text-sm md:text-base text-[#3d5f57] w-full"
+                >
+                  {sortOrder === 'asc' ? 'Earliest First' : sortOrder === 'desc' ? 'Latest First' : 'Sort by Expiry Date'}
+                  <ChevronDown size={17} className={`transition-transform ${isSortDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isSortDropdownOpen && (
+                  <div className="absolute top-full mt-1 w-full rounded-xl border border-[#d3e7e0] bg-white shadow-lg z-10">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSortOrder(null);
+                        setIsSortDropdownOpen(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm md:text-base text-[#3d5f57] hover:bg-[#ecf7f3] first:rounded-t-xl"
+                    >
+                      None
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSortOrder('asc');
+                        setIsSortDropdownOpen(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm md:text-base text-[#3d5f57] hover:bg-[#ecf7f3]"
+                    >
+                      Earliest First
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSortOrder('desc');
+                        setIsSortDropdownOpen(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm md:text-base text-[#3d5f57] hover:bg-[#ecf7f3] last:rounded-b-xl"
+                    >
+                      Latest First
+                    </button>
+                  </div>
+                )}
+              </div>
 
               <button
                 type="button"
-                className="flex items-center justify-between rounded-xl border border-[#d3e7e0] bg-white px-4 py-3 text-sm md:text-base text-[#3d5f57]"
+                onClick={() => {
+                  setSelectedCategory(null);
+                  setSortOrder(null);
+                  setSearchQuery('');
+                }}
+                className="rounded-xl bg-[#37aa82] px-4 py-3 text-sm md:text-base font-medium text-white hover:bg-[#2e9d79] transition"
               >
-                Sort by Expiry Date
-                <ChevronDown size={17} />
+                Clear All
               </button>
             </div>
           </div>
@@ -137,40 +236,10 @@ export default function BrowseMedicine() {
           />
         </div>
 
-        <section className="mt-6 grid gap-5 lg:grid-cols-[230px_1fr]">
-          <aside ref={sidebarRef} className="rounded-2xl border border-[#d6ebe4] bg-white/70 p-5">
-            <h2 className="text-xl font-medium text-[#2e4c46]">Filter by Category</h2>
-            <ul className="mt-6 space-y-4 text-[#4f6b65]">
-              {categories.map((category, index) => (
-                <li
-                  key={category.label}
-                  ref={(el) => {
-                    sidebarItemsRef.current[index] = el;
-                  }}
-                  className="flex items-center justify-between text-base"
-                >
-                  <span className="inline-flex items-center gap-3">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#edf7f3] text-[#57a48e]">
-                      <Package size={14} />
-                    </span>
-                    {category.label}
-                  </span>
-                  <span>{category.count}</span>
-                </li>
-              ))}
-            </ul>
-
-            <button
-              ref={clearFilterRef}
-              type="button"
-              className="mt-8 text-base text-[#68857e] transition hover:text-[#2f6e5f]"
-            >
-              Clear Filters
-            </button>
-          </aside>
-
+        <section className="mt-6">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {medicines.map((item, index) => (
+            {filteredMedicines.length > 0 ? (
+              filteredMedicines.map((item, index) => (
               <article
                 key={item.name}
                 ref={(el) => {
@@ -210,7 +279,13 @@ export default function BrowseMedicine() {
                   </div>
                 </div>
               </article>
-            ))}
+            ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-lg text-[#5b7570]">No medicines found matching your criteria.</p>
+                <p className="text-sm text-[#8aa39c] mt-2">Try adjusting your search or filters.</p>
+              </div>
+            )}
           </div>
         </section>
 

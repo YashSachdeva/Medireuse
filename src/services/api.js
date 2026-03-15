@@ -80,4 +80,12 @@ export const authAPI = {
   },
 };
 
+// Admin-specific API helpers (requires authenticated admin user)
+export const adminAPI = {
+  // fetches all users; backend will enforce protect+admin
+  getUsers: async () => {
+    return await fetchAPI('/admin/users');
+  },
+};
+
 export default authAPI;

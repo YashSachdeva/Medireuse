@@ -88,4 +88,45 @@ export const adminAPI = {
   },
 };
 
+// Order API functions
+export const orderAPI = {
+  // Create a new order
+  createOrder: async (orderData) => {
+    return await fetchAPI('/orders', {
+      method: 'POST',
+      body: JSON.stringify(orderData),
+    });
+  },
+
+  // Get all orders for authenticated user
+  getMyOrders: async () => {
+    return await fetchAPI('/orders');
+  },
+
+  // Get single order by ID
+  getOrderById: async (orderId) => {
+    return await fetchAPI(`/orders/${orderId}`);
+  },
+
+  // Update order (admin only - for updating status)
+  updateOrder: async (orderId, updateData) => {
+    return await fetchAPI(`/orders/${orderId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    });
+  },
+
+  // Cancel an order
+  cancelOrder: async (orderId) => {
+    return await fetchAPI(`/orders/${orderId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Get all orders (admin only)
+  getAllOrders: async () => {
+    return await fetchAPI('/orders/admin/orders');
+  },
+};
+
 export default authAPI;

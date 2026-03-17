@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, Package, Search } from "lucide-react";
 import { gsap } from "gsap";
+import BuyNowModal from "../components/BuyNowModal.jsx";
 
 const categories = [
   { label: "Tablets", count: 120 },
@@ -32,6 +33,8 @@ export default function BrowseMedicine() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const [selectedMedicine, setSelectedMedicine] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const getFilteredMedicines = () => {
     let filtered = medicines;
@@ -272,7 +275,11 @@ export default function BrowseMedicine() {
                     </div>
                     <button
                       type="button"
-                      className="rounded-xl bg-gradient-to-r from-[#37aa82] to-[#2e9d79] px-5 py-2.5 text-lg font-medium text-white"
+                      onClick={() => {
+                        setSelectedMedicine(item);
+                        setIsModalOpen(true);
+                      }}
+                      className="rounded-xl bg-gradient-to-r from-[#37aa82] to-[#2e9d79] px-5 py-2.5 text-lg font-medium text-white hover:opacity-90 transition-opacity"
                     >
                       Buy Now
                     </button>
@@ -304,6 +311,20 @@ export default function BrowseMedicine() {
           </button>
         </div>
       </section>
+
+      {/* Buy Now Modal */}
+      <BuyNowModal
+        medicine={selectedMedicine}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedMedicine(null);
+        }}
+        onOrderSuccess={() => {
+          // Optional: refresh medicines list or show success message
+          console.log('Order placed successfully!');
+        }}
+      />
     </main>
   );
 }

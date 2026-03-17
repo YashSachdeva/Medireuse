@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import connectDB from './src/config/db.js';
 import authRoutes from './src/routes/authRoutes.js';
 import adminRoutes from './src/routes/adminRoutes.js';
+import orderRoutes from './src/routes/orderRoutes.js';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -54,6 +55,9 @@ app.use('/api/auth', authLimiter, authRoutes);
 
 // admin-specific endpoints (protected & role-checked)
 app.use('/api/admin', adminRoutes);
+
+// order endpoints (protected)
+app.use('/api/orders', orderRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

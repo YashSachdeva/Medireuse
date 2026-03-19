@@ -1,9 +1,16 @@
 # Buy Now Functionality - Implementation Guide
 
 ## Overview
-The "Buy Now" functionality has been fully implemented for the Medireuse platform. This allows users to browse medicines and purchase them with a streamlined checkout process.
+The "Buy Now" functionality has been fully implemented for the Medireuse platform with **Razorpay payment integration**. This allows users to browse medicines and purchase them through multiple payment methods.
 
 ## What's New
+
+### Payment Integration
+✅ **Razorpay Payment Gateway** - Secure online payments
+- Credit/Debit Cards
+- UPI
+- Cash on Delivery
+- Bank Transfers
 
 ### Backend Changes
 
@@ -49,15 +56,21 @@ New `orderAPI` object with methods:
 
 #### 2. **BuyNowModal Component** (`src/components/BuyNowModal.jsx`)
 - Modal dialog for purchase checkout
-- Features:
+- **Features:**
   - Display medicine details and pricing
   - Quantity selector with stock validation
-  - Payment method selection (COD, UPI, Card, Bank Transfer)
+  - **Razorpay Payment Integration**
+    - Card payments
+    - UPI payments
+    - Test mode ready
+  - Alternative payment methods (COD, Bank Transfer)
   - Shipping address input (required)
   - Optional notes field
-  - Real-time price calculation
+  - Real-time price calculation with Rupee symbol (₹)
+  - Loading animation during payment
   - Success/error notifications
   - Form validation
+  - Secure payment processing indicator
 
 #### 3. **OrderHistory Page** (`src/pages/OrderHistory.jsx`)
 - Display all orders for authenticated user
@@ -77,11 +90,13 @@ New `orderAPI` object with methods:
 - Selected medicine data passed to modal
 
 #### 5. **Updated App Routes** (`src/App.jsx`)
-- Added `/orders` route for OrderHistory page
-- Added conditional navbar disable for orders page
-- Added orders page to footer hide logic
-
-## How to Use
+- AdInitial Setup
+1. Get Razorpay test keys from: https://dashboard.razorpay.com/app/settings/api-keys
+2. Create `.env.local` in the frontend folder:
+   ```bash
+   VITE_RAZORPAY_KEY_ID=your_test_key
+   ```
+3. Restart the Vite dev server
 
 ### For Users
 
@@ -93,10 +108,33 @@ New `orderAPI` object with methods:
    - Click "Buy Now" button on any medicine
    - Modal opens with medicine details
    - Select quantity (max = available stock)
-   - Choose payment method
+   - Choose payment method:
+     - **Card**: Credit/Debit Card via Razorpay
+     - **UPI**: UPI payment via Razorpay  
+     - **COD**: Cash on Delivery (instant order)
+     - **Bank Transfer**: Direct bank transfer
    - Enter shipping address
-   - Add optional notes
-   - Click "Place Order"
+   - Add optional notes/instructions
+   - Click "Pay ₹ [Amount]"
+   - For card/UPI: Razorpay popup opens for secure payment
+   - For COD/Bank: Order confirmed immediately
+
+3. **Viewing Orders**
+   - Navigate to "My Orders" page (`/orders`)
+   - View all past orders with status
+   - Click order to see full details
+   - Cancel pending orders if needed
+
+### For Testing (Razorpay Test Mode)
+**Test Card Details:**
+- Card Number: `4111 1111 1111 1111`
+- Expiry: Any future date (e.g., 12/25)
+- CVV: Any 3 digits (e.g., 123)
+- OTP: `123456`
+
+**Test UPI:**
+- Any UPI ID (e.g., `success@razorpay`)
+- OTP: `123456`
 
 3. **Viewing Orders**
    - Navigate to "My Orders" page (`/orders`)
@@ -192,13 +230,14 @@ Response:
   ]
 }
 ```
-
-## Testing
-
-### Test the Buy Now Flow
-1. Login to the application
-2. Navigate to Browse Medicines
-3. Click "Buy Now" on any medicine
+roduction Razorpay Keys**: Switch to live keys in production
+2. **Payment Verification**: Server-side payment verification webhook
+3. **Refund System**: Implement refund management
+4. **Email Notifications**: Send payment confirmation and status updates
+5. **Order Tracking**: Real-time order tracking with GPS
+6. **Order Statistics**: Display order analytics on admin dashboard
+7. **Review System**: Allow users to review medicines after delivery
+8. Click "Buy Now" on any medicine
 4. Fill in all required fields
 5. Verify quantity is validated
 6. Submit order and verify success message
@@ -242,8 +281,20 @@ Response:
 
 ## Environment Variables
 
-No new environment variables required. Uses existing:
-- `MONGODB_URI` or `MONGO_URI`
+### Razorpay Configuration
+Add the following to `.env.local`:
+```
+VITE_RAZORPAY_KEY_ID=your_razorpay_test_key
+```
+
+Get your Razorpay keys from: https://dashboard.razorpay.com/app/settings/api-keys
+### Frontend
+- `razorpay` - Already installed
+- React (built-in)
+- Lucide-react (icons)
+
+### Backend
+- MongoDB/Mongoose (existingONGO_URI`
 - `JWT_SECRET`
 - `JWT_EXPIRE`
 

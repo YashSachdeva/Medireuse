@@ -55,6 +55,14 @@ const orderSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  paymentId: {
+    type: String,
+    trim: true
+  },
+  paymentSignature: {
+    type: String,
+    trim: true
+  },
   createdAt: {
     type: Date,
     default: Date.now

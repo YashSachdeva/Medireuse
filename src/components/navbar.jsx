@@ -1,4 +1,5 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import authAPI from "../services/api";
 
 export default function Navbar({
@@ -8,9 +9,17 @@ export default function Navbar({
   disableAnimations = false,
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   const user = authAPI.getStoredUser();
   const isAdmin = user?.role === 'admin';
+
+  const handleLogout = () => {
+    authAPI.logout();
+    setIsProfileMenuOpen(false);
+    navigate("/");
+  };
 
   const dashboardLinks = [
     { label: "Dashboard", path: "/" },
@@ -130,26 +139,108 @@ export default function Navbar({
         )}
 
         {!showAuthButtons && showProfileIcon && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 relative">
+            {/* Profile Avatar Button */}
             <button
-              type="button"
-              aria-label="Profile"
-              className="h-11 w-11 rounded-full border border-[#b9d7c6] bg-[#eef8f2] text-[#0f5132] flex items-center justify-center"
+              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              className="h-12 w-12 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white flex items-center justify-center shadow-lg hover:shadow-xl transition transform hover:scale-105 font-bold text-lg"
+              title={user?.name}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                className="h-5 w-5"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.125a7.5 7.5 0 0115 0" />
-              </svg>
+              {user?.name?.charAt(0).toUpperCase() || "U"}
             </button>
+
+            {/* Dropdown Menu */}
+            {isProfileMenuOpen && (
+              <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                {/* User Info Section */}
+                <div className="px-6 py-4 bg-gradient-to-r from-emerald-50 to-slate-50 border-b border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <div className="h-14 w-14 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white flex items-center justify-center font-bold text-xl shadow-lg">
+                      {user?.name?.charAt(0).toUpperCase() || "U"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-slate-900 truncate">{user?.name || "User"}</p>
+                      <p className="text-sm text-slate-600 truncate">{user?.email}</p>
+                      <span className="inline-block mt-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold capitalize">
+                        {user?.role || "user"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Menu Items */}
+                <div className="py-2">
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsProfileMenuOpen(false)}
+                    className="flex items-center gap-3 px-6 py-3 text-slate-700 hover:bg-slate-100 transition"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className="h-5 w-5 text-emerald-600"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.125a7.5 7.5 0 0115 0" />
+                    </svg>
+                    <span className="font-medium">View Profile</span>
+                  </Link>
+
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      className="flex items-center gap-3 px-6 py-3 text-slate-700 hover:bg-slate-100 transition"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        className="h-5 w-5 text-blue-600"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      <span className="font-medium">Admin Dashboard</span>
+                    </Link>
+                  )}
+
+                  <hr className="my-2" />
+
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-6 py-3 text-red-600 hover:bg-red-50 transition text-left font-medium"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className="h-5 w-5"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Logout
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Close menu when clicking outside */}
+            {isProfileMenuOpen && (
+              <button
+                onClick={() => setIsProfileMenuOpen(false)}
+                className="fixed inset-0 z-40"
+              />
+            )}
+
             {mode === "dashboard" && (
-              <span className="hidden md:inline-flex items-center gap-1 text-[30px] text-[#526770] font-medium">
-                AD
+              <span className="hidden md:inline-flex items-center gap-1 text-[15px] text-[#526770] font-medium">
+                {user?.name?.split(" ")[0]}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"

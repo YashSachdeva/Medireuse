@@ -8,7 +8,13 @@ export default function Auth({ initialMode = "login" }) {
   const location = useLocation();
   const [isSignup, setIsSignup] = useState(initialMode === "signup");
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
-  const [signupForm, setSignupForm] = useState({ name: "", email: "", password: "" });
+  const [signupForm, setSignupForm] = useState({ 
+    name: "", 
+    email: "", 
+    password: "", 
+    phone: "", 
+    address: "" 
+  });
 
   useEffect(() => {
     setIsSignup(initialMode === "signup");
@@ -37,6 +43,8 @@ export default function Auth({ initialMode = "login" }) {
         name: signupForm.name,
         email: signupForm.email,
         password: signupForm.password,
+        phone: signupForm.phone,
+        address: signupForm.address,  
       });
       alert("Signup Successful! Please log in.");
       setIsSignup(false);
@@ -147,6 +155,20 @@ export default function Auth({ initialMode = "login" }) {
                       className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                       required
                     />
+                    <input
+                      type="tel"
+                      placeholder="Phone number"
+                      value={signupForm.phone}
+                      onChange={(e) => setSignupForm({ ...signupForm, phone: e.target.value })}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                    />
+                    <textarea
+                      placeholder="Address"
+                      value={signupForm.address}
+                      onChange={(e) => setSignupForm({ ...signupForm, address: e.target.value })}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                      rows="2"
+                    ></textarea>
                   </div>
 
                   <button className="mt-6 w-full rounded-xl bg-emerald-600 py-3 font-semibold text-white transition hover:bg-emerald-700">

@@ -36,6 +36,12 @@ export const authAPI = {
     if (data.token) {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Fetch complete user data
+      const userData = await authAPI.getMe();
+      if (userData.user) {
+        localStorage.setItem('user', JSON.stringify(userData.user));
+      }
     }
     
     return data;
@@ -52,14 +58,35 @@ export const authAPI = {
     if (data.token) {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Fetch complete user data including phone and address
+      const userData = await authAPI.getMe();
+      if (userData.user) {
+        localStorage.setItem('user', JSON.stringify(userData.user));
+      }
     }
     
     return data;
   },
 
-  // Get current user
+  // Get current user from backend
   getMe: async () => {
     return await fetchAPI('/auth/me');
+  },
+
+  // Update user profile
+  updateProfile: async (profileData) => {
+    const data = await fetchAPI('/auth/me', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+    
+    // Update stored user data
+    if (data.user) {
+      localStorage.setItem('user', JSON.stringify(data.user));
+    }
+    
+    return data;
   },
 
   // Logout user

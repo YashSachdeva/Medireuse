@@ -156,4 +156,137 @@ export const orderAPI = {
   },
 };
 
+// Sell Medicine API functions
+export const sellAPI = {
+  // Get all active listings with filters
+  getAllListings: async (filters = {}) => {
+    const queryParams = new URLSearchParams();
+    if (filters.page) queryParams.append('page', filters.page);
+    if (filters.limit) queryParams.append('limit', filters.limit);
+    if (filters.medicineType) queryParams.append('medicineType', filters.medicineType);
+    if (filters.priceMin) queryParams.append('priceMin', filters.priceMin);
+    if (filters.priceMax) queryParams.append('priceMax', filters.priceMax);
+    if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
+
+    const endpoint = `/sell${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch listings');
+    }
+    
+    return data;
+  },
+
+  // Search listings
+  searchListings: async (query, page = 1, limit = 12) => {
+    const response = await fetch(
+      `${API_BASE_URL}/sell/search/${encodeURIComponent(query)}?page=${page}&limit=${limit}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Search failed');
+    }
+    
+    return data;
+  },
+
+  // Get single listing by ID
+  getListingById: async (listingId) => {
+    return await fetchAPI(`/sell/${listingId}`);
+  },
+
+  // Create new listing with image upload
+  createListing: async (formData) => {
+    const token = localStorage.getItem('token');
+    
+    const response = await fetch(`${API_BASE_URL}/sell`, {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData, // FormData is multipart, don't stringify
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to create listing');
+    }
+    
+    return data;
+  },
+
+  // Get user's listings
+  getMyListings: async (status = '', page = 1, limit = 10) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', page);
+    queryParams.append('limit', limit);
+    if (status) queryParams.append('status', status);
+
+    return await fetchAPI(`/sell/user/my-listings?${queryParams.toString()}`);
+  },
+
+  // Update listing with optional image upload
+  updateListing: async (listingId, formData) => {
+    const token = localStorage.getItem('token');
+    
+    const response = await fetch(`${API_BASE_URL}/sell/${listingId}`, {
+      method: 'PUT',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to update listing');
+    }
+    
+    return data;
+  },
+
+  // Delete listing
+  deleteListing: async (listingId) => {
+    return await fetchAPI(`/sell/${listingId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Mark quantity as sold
+  markAsSold: async (listingId, quantitySold) => {
+    return await fetchAPI(`/sell/${listingId}/mark-sold`, {
+      method: 'PUT',
+      body: JSON.stringify({ quantitySold }),
+    });
+  },
+
+  // Admin: Get pending listings
+  getPendingListings: async (page = 1, limit = 20) => {
+    return await fetchAPI(`/sell/admin/pending?page=${page}&limit=${limit}`);
+  },
+
+  // Admin: Verify/approve listing
+  verifyListing: async (listingId, isVerified, verificationNotes = '') => {
+    return await fetchAPI(`/sell/admin/${listingId}/verify`, {
+      method: 'PUT',
+      body: JSON.stringify({ isVerified, verificationNotes }),
+    });
+  },
+};
+
 export default authAPI;

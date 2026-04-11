@@ -5,6 +5,7 @@ import connectDB from './src/config/db.js';
 import authRoutes from './src/routes/authRoutes.js';
 import adminRoutes from './src/routes/adminRoutes.js';
 import orderRoutes from './src/routes/orderRoutes.js';
+import sellRoutes from './src/routes/sellRoutes.js';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -58,6 +59,9 @@ app.use('/api/admin', adminRoutes);
 
 // order endpoints (protected)
 app.use('/api/orders', orderRoutes);
+
+// sell medicine endpoints (protected)
+app.use('/api/sell', sellRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
